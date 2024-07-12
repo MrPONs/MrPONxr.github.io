@@ -1,0 +1,127 @@
+Note
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เว็ปกุมันเท่ควายยยย</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2> เว็ปกุมันเท่ควาย </h2>
+        <p>ควายอยากได้โน๊ตตรงคีย์มั้ย:</p>
+        
+        <form id="transposeForm">
+            <label for="fromKey">Original Key:</label>
+            <input type="text" id="fromKey" name="fromKey" placeholder="Enter original key..." required><br><br>
+            
+            <label for="notes">Notes:</label>
+            <input type="text" id="notes" name="notes" placeholder="Enter notes separated by spaces..." required><br><br>
+            
+            <label for="toKey">Transpose To:</label>
+            <input type="text" id="toKey" name="toKey" placeholder="Enter key to transpose to..." required><br><br>
+            
+            <button type="submit">Transpose</button>
+        </form>
+        
+        <div class="result" id="result">
+            <p id="originalNotes"></p>
+            <p id="transposedNotes"></p>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('transposeForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            var fromKey = document.getElementById('fromKey').value.trim();
+            var notes = document.getElementById('notes').value.trim().split(' ');
+            var toKey = document.getElementById('toKey').value.trim();
+            
+            // Perform data validation (similar to Python functions)
+            var chromatic_scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            var flat_to_sharp = {
+                'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#'
+            };
+            
+            function convertFlatToSharp(note) {
+                return flat_to_sharp[note] || note;
+            }
+            
+            function getNotePosition(note, scale) {
+                var index = scale.indexOf(note);
+                if (index === -1) {
+                    throw new Error("Note '" + note + "' is not in the chromatic scale.");
+                }
+                return index;
+            }
+            
+            function transpose(note, steps, scale) {
+                var notePosition = getNotePosition(note, scale);
+                var newPosition = (notePosition + steps) % scale.length;
+                return scale[newPosition];
+            }
+            
+            function getStepsBetweenKeys(fromKey, toKey, scale) {
+                var fromPosition = getNotePosition(fromKey, scale);
+                var toPosition = getNotePosition(toKey, scale);
+                return toPosition - fromPosition;
+            }
+            
+            function transposeNotes(notes, fromKey, toKey) {
+                var steps = getStepsBetweenKeys(fromKey, toKey, chromatic_scale);
+                var transposedNotes = notes.map(function(note) {
+                    return transpose(note, steps, chromatic_scale);
+                });
+                return transposedNotes;
+            }
+            
+            try {
+                // Convert flat notes to sharp notes
+                fromKey = convertFlatToSharp(fromKey);
+                notes = notes.map(function(note) {
+                    return convertFlatToSharp(note);
+                });
+                
+                // Validate input against chromatic scale
+                var isValid = true;
+                [fromKey].concat(notes).forEach(function(item) {
+                    if (chromatic_scale.indexOf(item) === -1) {
+                        isValid = false;
+                        throw new Error("Invalid input: '" + item + "' is not in the chromatic scale.");
+                    }
+                });
+                
+                if (isValid) {
+                    // Transpose notes
+                    var transposedNotes = transposeNotes(notes, fromKey, toKey);
+                    
+                    // Display result
+                    document.getElementById('originalNotes').textContent = "Original notes in key " + fromKey + ": " + notes.join(', ');
+                    document.getElementById('transposedNotes').textContent = "Transposed notes in key " + toKey + ": " + transposedNotes.join(', ');
+                }
+            } catch (error) {
+                console.error(error.message);
+                alert(error.message);
+            }
+        });
+    </script>
+</body>
+</html>
